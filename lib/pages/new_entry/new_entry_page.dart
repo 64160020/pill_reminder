@@ -263,13 +263,13 @@ class _NewEntryPageState extends State<NewEntryPage> {
                       intIDs.map((i) => i.toString()).toList();
 
                       Medicine newEntryMedicine = Medicine(
-                          notificationIDs: notificationIDs,
-                          medicineName: medicineName,
-                          dosage: dosage,
-                          medicineType: medicineType,
-                          interval: interval,
-                          startTime: startTime,
-                          nameID: nameID,);
+                        notificationIDs: notificationIDs,
+                        medicineName: medicineName,
+                        dosage: dosage,
+                        medicineType: medicineType,
+                        interval: interval,
+                        startTime: startTime,
+                        nameID: nameID,);
 
                       //update medicine list via global bloc
                       globalBloc.updateMedicineList(newEntryMedicine);
@@ -567,7 +567,7 @@ class MedicineTypeColumn extends StatelessWidget {
                 child: SvgPicture.asset(
                   iconValue,
                   height: 7.h,
-                 // color: isSelected ? Colors.white : kOtherColor,
+                  // color: isSelected ? Colors.white : kOtherColor,
                 ),
               ),
             ),
