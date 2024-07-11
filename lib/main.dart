@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pill_reminder_app/constants.dart';
@@ -5,12 +7,31 @@ import 'package:pill_reminder_app/global_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 //import 'package:untitled2/constants.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 
 import 'pages/home_page.dart';
 
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  // Request permissions
+  if (Platform.isIOS) {
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+  } else if (Platform.isAndroid) {
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestPermission();
+  }
   runApp(const MyApp());
 }
 
@@ -22,7 +43,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // This widget is the root of your application.
   GlobalBloc? globalBloc;
 
   @override

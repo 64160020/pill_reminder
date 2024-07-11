@@ -5,21 +5,22 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import ' notification/notification_service.dart';
 import 'models/Medicine.dart';
-
 
 class GlobalBloc {
   BehaviorSubject<List<Medicine>>? _medicineList$;
   BehaviorSubject<List<Medicine>>? get medicineList$ => _medicineList$;
 
+  final NotificationService _notificationService = NotificationService();
+
   GlobalBloc() {
     _medicineList$ = BehaviorSubject<List<Medicine>>.seeded([]);
     makeMedicineList();
+    _notificationService.init(); // Initialize notification service
   }
 
   Future removeMedicine(Medicine tobeRemoved) async {
-    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
     SharedPreferences sharedUser = await SharedPreferences.getInstance();
     List<String> medicineJsonList = [];
 
@@ -27,10 +28,9 @@ class GlobalBloc {
     blockList.removeWhere(
             (medicine) => medicine.medicineName == tobeRemoved.medicineName);
 
-    //remove notifications,todo
+    // Cancel notifications for the removed medicine
     for (int i = 0; i < (24 / tobeRemoved.interval!).floor(); i++) {
-      flutterLocalNotificationsPlugin
-          .cancel(int.parse(tobeRemoved.notificationIDs![i]));
+      await _notificationService.cancelNotification(int.parse(tobeRemoved.notificationIDs![i]));
     }
 
     if (blockList.isNotEmpty) {
@@ -60,6 +60,20 @@ class GlobalBloc {
       medicineJsonList.add(newMedicineJson);
     }
     sharedUser.setStringList('medicines', medicineJsonList);
+
+    // Schedule notifications for the new medicine
+    for (int i = 0; i < (24 / newMedicine.interval!).floor(); i++) {
+      DateTime scheduledTime = DateTime.now().add(Duration(hours: i * newMedicine.interval!));
+      // Ensure the scheduled time is in the future
+      if (scheduledTime.isAfter(DateTime.now())) {
+        await _notificationService.showNotification(
+          int.parse(newMedicine.notificationIDs![i]),
+          'Medicine Reminder',
+          'Time to take ${newMedicine.medicineName}',
+          scheduledTime,
+        );
+      }
+    }
   }
 
   Future makeMedicineList() async {
